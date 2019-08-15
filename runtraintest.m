@@ -27,7 +27,7 @@ if strcmpi(amporwidth, 'amp')
     plot(paramrange,data(:,3),'c');
     plot(paramrange,data(:,5),'r');
     plot(paramrange,data(:,7),'m');
-    legend('train low test low','train both, test low','train high, test high','train both, test high');
+    legend('train low, test low','train both, test low','train high, test high','train both, test high');
     title('amplitude')
     xlabel(xax)
 elseif strcmpi(amporwidth, 'width')
