@@ -46,7 +46,7 @@ if any(nargin == [0])
 end
 
 % parse input arguments
-getArgs(varargin,{'instanceFieldName=instance','channelFieldName=channel','verbose=0','fitNoise=1','doClassify=0','dor2=1'});
+getArgs(varargin,{'instanceFieldName=instance','channelFieldName=channel','verbose=0','fitNoise=0','doClassify=0','dor2=0'});
 
 if isfield(instances{1},instanceFieldName) && isfield(instances{1},'name')
   for iROI = 1:length(instances)

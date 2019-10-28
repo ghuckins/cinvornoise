@@ -96,8 +96,8 @@ if(fitNoise)
   [channel.rho channel.sigma channel.tao channel.omega]=getNoiseParam(channel.channelResponse, instanceMatrix,channel.channelWeights);
   [channel.posterior channel.posterior_mean channel.posterior_std] = getPosterior(channel,instanceMatrix)
 end
-
-
+a = channel.channelWeights;
+save('channelweights05.mat','a');
 % channel.channelWeights=channel.channelWeights./repmat(sum(channel.channelWeights,1),size(channel.channelWeights,1),1); % this will normalize the weights, not sure if it's correct 
 
 % pack up into a structure to return
@@ -177,8 +177,10 @@ A(end,1) = 1;
 b = -0.001*ones(size(A,1),1); %avoid singularity
 b(length(x_0)+2:end) = 10;
 b(length(x_0) + 1) = 0.5;
-options = optimoptions('fmincon','MaxFunEvals',2000,'Algorithm','sqp');
-x = fmincon(f,x_0,A,b,[],[],[],[],[],options);
+lb = [0,0.2,0.6*ones(1,size(instanceMatrix,2))];
+ub = [0.4,0.6,1.4*ones(1,size(instanceMatrix,2))];
+options = optimoptions('fmincon','MaxFunEvals',10000,'Algorithm','sqp');
+x = fmincon(f,x_0,A,b,[],[],lb,ub,[],options);
 rho = x(1);
 sigma = x(2);
 tao = x(3:end);
@@ -194,8 +196,14 @@ omega = rho*tao'*tao + (1-rho)*diag(diag(tao'*tao))+sigma^2*channelWeights'*chan
 %omegaInv = inv(omega);
 nll = 0;
 thisError = instanceMatrix - channelResponse*channelWeights;
-nll = nll + 1/2*size(channelResponse,1)*(log(2*pi) + log(det(omega))); %2*sum(log(diag(chol(omega)))) is the logdet(omega)
-nll = nll + 1/2*sum(dot(thisError',(omega\thisError')));
+[cholsky, p] = chol(omega);
+if p == 0
+    nll = nll + 1/2*size(channelResponse,1)*(log(2*pi) + 2*sum(log(diag(cholsky)))); %2*sum(log(diag(chol(omega)))) is the logdet(omega)
+    nll = nll + 1/2*sum(dot(thisError',(omega\thisError')));
+else
+    nll = 1000;
+end
+    
 
 
 %nll = 0;

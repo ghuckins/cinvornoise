@@ -18,7 +18,7 @@
 function m = setCinvorModel(e,varargin)
 
 % get arguments %%%%%%kappa=2.5, noise = 8
-getArgs(varargin, {'kappa=4','amplitude=1','noise=10','nVoxels=78','neuronsPerVox=180','weighting=random','nTuning=180','myWeights=0','uniformFactor=0','tau=0.1','rho=0.1','epsilon=0.7','exponent=2','alphaParam=1','kConcentrated=[]','categoryConfusion=0','voxelTuningFunction=0'});
+getArgs(varargin, {'kappa=4','amplitude=1','noise=10','nVoxels=78','neuronsPerVox=180','weighting=random','nTuning=180','myWeights=0','uniformFactor=0','tau=0.1','rho=0.1','epsilon=0.7','exponent=2','alphaParam=1','kConcentrated=[]','categoryConfusion=0','voxelTuningFunction=0','gain=0','sig=10'});
 
 % range of orientations span 180
 rangeScalFac=360/e.totalRangeDeg;
@@ -109,6 +109,10 @@ m.rho = rho;
 % sets whether there is any confusion about what category
 % a stimulus is, first set to 0 so that we can compute scale factor below
 m.categoryConfusion = 0;
+
+%gain modulation
+m.gain = gain;
+m.sig = sig;
 
 % compute receptive field scale factor - so that each receptive field
 % gives a response of 1 integrated over all orientations (this is 
@@ -210,7 +214,7 @@ m.kConcentrated = kConcentrated;
 m.categoryConfusion = categoryConfusion;
 
 % testing plots
-doTestPlot = 0;
+doTestPlot = 1;
 if doTestPlot
   testPlot(m,e,neuralResponse)
   drawnow
@@ -289,7 +293,13 @@ elseif m.kappa < 0
 else
   % otherwise it's just a von mises distribution
   response = fitVonMises(orientation,[],orientationPreference,m.kappa,180);
+  if m.gain
+      %gauss = (normpdf(orientation + 5 - orientationPreference,0,m.sig) + normpdf(orientation - 5 - orientationPreference,0,m.sig))/2.;
+      gauss = normpdf(orientation-orientationPreference,0,m.sig);
+      response = response.*gauss(:);
+  end
 end
 
 % normalize by scale factor so that the total output of neuron is 1
-response = response * m.scaleFactor;
+%response = response * m.scaleFactor;
+

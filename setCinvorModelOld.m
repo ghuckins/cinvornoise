@@ -18,7 +18,7 @@
 function m = setCinvorModel(e,varargin)
 
 % get arguments %%%%%%kappa=2.5, noise = 8
-getArgs(varargin, {'kappa=4','amplitude=1','noise=10','nVoxels=78','neuronsPerVox=180','weighting=random','nTuning=180','myWeights=0','uniformFactor=0','tao=.1','exponent=2','alphaParam=1','kConcentrated=[]','categoryConfusion=0','voxelTuningFunction=0'});
+getArgs(varargin, {'kappa=4','amplitude=1','noise=10','nVoxels=78','neuronsPerVox=180','weighting=fixed','nTuning=180','myWeights=0','uniformFactor=0','tao=.1','exponent=2','alphaParam=1','kConcentrated=[]','categoryConfusion=0','voxelTuningFunction=0','gain=0','sig=10','center=1','opposite=0'});
 
 % range of orientations span 180
 rangeScalFac=360/e.totalRangeDeg;
@@ -64,7 +64,11 @@ if strcmp(weighting,'random')
   end
 elseif strcmp(weighting,'fixed')
   % passed in weight matrix
-  weights = myWeights;
+  load('weights.mat'); 
+  neuronVoxelWeights = fixedweights;
+  if opposite
+      neuronVoxelWeights = ones(size(fixedweights)) - fixedweights;
+  end
 elseif strcmp(weighting,'concentrated')
   % this picks weights for each voxel conentrated around
   % a random orientation for each voxel - according to the
@@ -103,6 +107,11 @@ m.kappa = kappa;
 % sets whether there is any confusion about what category
 % a stimulus is, first set to 0 so that we can compute scale factor below
 m.categoryConfusion = 0;
+
+%gain modulation
+m.gain = gain;
+m.sig = sig;
+m.center = center;
 
 % compute receptive field scale factor - so that each receptive field
 % gives a response of 1 integrated over all orientations (this is 
@@ -279,7 +288,15 @@ elseif m.kappa < 0
 else
   % otherwise it's just a von mises distribution
   response = fitVonMises(orientation,[],orientationPreference,m.kappa,180);
+  if m.gain
+      if m.center
+        gauss = 1 + normpdf(orientation - orientationPreference,0,m.sig);
+      else
+         gauss = 1 + (normpdf(orientation + 30 - orientationPreference,0,m.sig) + normpdf(orientation - 30 - orientationPreference,0,m.sig))/2.;
+      end
+      response = response.*gauss(:);
+  end
 end
 
 % normalize by scale factor so that the total output of neuron is 1
-response = response * m.scaleFactor;
+%response = response * m.scaleFactor;

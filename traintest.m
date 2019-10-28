@@ -1,9 +1,11 @@
-function stats = traintest(firstreps, secondreps,firstnoise,secondnoise)
+function stats = traintest(varargin)
+
+getArgs(varargin, {'firstreps=200','secondreps=200', 'firstnoise=0.05','secondnoise=0.05','firstkappa=4','secondkappa=4','firstgain=0','secondgain=0','firstsig=10','secondsig=10','firstcenter=1','secondcenter=1','opp1=0','opp2=0'});
 
 efirst = specifyCinvorExperiment('stimLevel',8,strcat('trialPerStim=',num2str(firstreps)));
 esecond = specifyCinvorExperiment('stimLevel',8,strcat('trialPerStim=',num2str(secondreps)));
-mfirst = setCinvorModelOld(efirst,strcat('noise=',num2str(firstnoise)));
-msecond = setCinvorModelOld(esecond,strcat('noise=',num2str(secondnoise)));
+mfirst = setCinvorModelOld(efirst,strcat('noise=',num2str(firstnoise)),strcat('kappa=',num2str(firstkappa)),strcat('gain=',num2str(firstgain)),strcat('sig=',num2str(firstsig)),strcat('opposite=',num2str(opp1)));
+msecond = setCinvorModelOld(esecond,strcat('noise=',num2str(secondnoise)),strcat('kappa=',num2str(secondkappa)),strcat('gain=',num2str(secondgain)),strcat('sig=',num2str(secondsig)),strcat('opposite=',num2str(opp2)));
 
 %generate first data
 firsttrain=getCinvorInstancesOld(mfirst,efirst);
